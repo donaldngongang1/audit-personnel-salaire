@@ -1,0 +1,26 @@
+{
+  "PostToolUse": [
+    {
+      "matcher": "Write|Edit",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "The user just modified a file. Check if the modified file path ends with '.xlsx' or '.xlsm' (a spreadsheet file). If it does AND the file matches the pattern 'FT-P-2*.xlsx' or is referenced in .audit-session.json as 'feuille_travail', then run the three audit verification scripts automatically:\n1. python scripts/eval_totals.py\n2. python scripts/eval_ecart.py\n3. python scripts/eval_formulas.py\nReport results as: ✅ or ❌ for each script. If any fails, describe the specific mismatch. If the file is not an audit workbook, do nothing silently.",
+          "timeout": 60
+        }
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "matcher": ".*",
+      "hooks": [
+        {
+          "type": "prompt",
+          "prompt": "Before Claude stops, check if .audit-session.json exists in the working directory. If it does and 'steps_completed' does NOT contain 'all', remind the user of the remaining audit steps that haven't been completed yet. Format the reminder as: '⚠️ Audit en cours / Audit in progress — Remaining steps: [list uncompleted steps]'. If the audit is complete or no session file exists, say nothing.",
+          "timeout": 15
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+# Audit session files (contain client-specific paths)
+.audit-session.json
+
+# Intermediate pivot CSVs (generated at runtime)
+.livre_paie_pivot.csv
+.charges_patronales_pivot.csv
+
+# Client data files (never commit)
+*.xlsx
+*.xls
+*.CSV
+*.csv
+
+# Keep the template asset
+!assets/FT-P-2-template.xlsx
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db

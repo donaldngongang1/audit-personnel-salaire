@@ -1,0 +1,14 @@
+{
+  "name": "audit-personnel-salaire",
+  "version": "1.0.0",
+  "description": "Automated audit workpaper for payroll and personnel charges reconciliation (OHADA/Cameroonian chart of accounts). Builds Extract sheets, fills Feuil2 reconciliation, and explains ecarts.",
+  "author": {
+    "name": "Xavier Ngonganga Choun",
+    "email": "contact@auditpersonnel.com",
+    "url": "https://github.com/XavierNGONGANGACHOUN/audit-personnel-salaire"
+  },
+  "homepage": "https://github.com/XavierNGONGANGACHOUN/audit-personnel-salaire",
+  "repository": "https://github.com/XavierNGONGANGACHOUN/audit-personnel-salaire",
+  "license": "Commercial",
+  "keywords": ["audit", "payroll", "personnel", "OHADA", "Cameroun", "reconciliation", "salaire", "charges"]
+}
