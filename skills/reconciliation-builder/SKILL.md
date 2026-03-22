@@ -2,107 +2,149 @@
 name: Reconciliation Builder
 description: >
   Activates when the user asks to "build Feuil2", "fill the reconciliation sheet", "remplir le
-  rapprochement", "créer le tableau de bord", "reconcile payroll and accounting", "fill paie section",
-  "fill compta section", "build ecart row", "construire Feuil2", or when the reconciliation step
-  of the audit workflow is reached. Provides the complete logic for populating every row and
-  column of the Feuil2 workpaper from the Extract sheets.
-version: 1.0.0
+  rapprochement", "créer le tableau de bord", "reconcile payroll and accounting", "fill paie
+  section", "fill compta section", "build ecart row", "construire Feuil2", or when the
+  reconciliation step of the audit workflow is reached. Provides the complete logic for
+  populating every row and column of the Feuil2 workpaper, then automatically triggers the
+  full gap-analysis (summarise) workflow.
+version: 1.1.0
 ---
 
-## Reconciliation Builder — Skill Guide
+## Reconciliation Builder — Skill Guide (v1.1 — SYSCOHADA + Excel formulas)
 
-Feuil2 is the central reconciliation workpaper. It has two main sections — PAIE and COMPTABILITE —
-plus a TOTAL and ECART row. The script `scripts/build_reconciliation.py` implements all of this.
-
----
-
-### Feuil2 Column Map
-
-| Col | Letter | Header | Source |
-|-----|--------|--------|--------|
-| 1–13 | A–M | Employee/account identity fields | Copied from payroll data |
-| 14 | N | Salaire Base | **ALWAYS BLANK** |
-| 15 | O | Ancienneté | **ALWAYS BLANK** |
-| 16 | P | H. Sup | **ALWAYS BLANK** |
-| 17 | Q | Autre Gain | **ALWAYS BLANK** |
-| 18 | R | SAL BRUT | LivrePaie BRUT total per employee; for COMPTA = net solde of accounts 661-663 |
-| 19 | S | CNPS/P (Pension AV) | ChargesPatronales code 4500; for COMPTA = GL account 664120 |
-| 20 | T | CF/P | ChargesPatronales code 4100; for COMPTA = GL account 664380 |
-| 21 | U | FNE | ChargesPatronales code 4400; for COMPTA = 0 (FNE not in GL) |
-| 22 | V | CF/P + FNE | Formula: `=T{r}+U{r}` |
-| 23 | W | AF | ChargesPatronales code 4800; for COMPTA = GL account 664110 |
-| 24 | X | AT | ChargesPatronales code 4900; for COMPTA = GL account 664130 |
-| 25 | Y | TOTAL | Formula: `=R{r}+S{r}+T{r}+U{r}+W{r}+X{r}` |
-
-**CRITICAL**: Columns N, O, P, Q (14–17) MUST be blank (value=None) on EVERY data row.
-Never write formulas or values to these columns.
+Feuil2 is the central reconciliation workpaper. After building it, this skill MUST automatically
+trigger the full `summarise` (gap-analysis) skill/command.
 
 ---
 
-### Section I — PAIE (Employee Rows)
+### Column Map (SYSCOHADA)
 
-- One row per employee from the merged LivrePaie + ChargesPatronales pivot.
-- Sort by Matricule ascending.
-- Row start: dynamically determined (look for "TOTAL PAIE" label to find the end).
-- Write R (SAL BRUT), S (CNPS/P), T (CF/P), U (FNE), W (AF), X (AT) from pivot data.
-- V = formula `=T{r}+U{r}`, Y = formula `=R{r}+S{r}+T{r}+U{r}+W{r}+X{r}`
-- Alternating row fills: even rows = `F5F8FC`, odd rows = white/None.
-
-**TOTAL PAIE row**: `=SUM(col{DATA_START}:col{TOT_PAIE_ROW-1})` for each of R→X, Y.
-Style: `D6E4F0` fill, bold `1F4E79` font, medium top+bottom border.
-
----
-
-### Section II — COMPTABILITE (GL Account Rows)
-
-Four groups of accounts, each with a subtotal row:
-
-**Group A — Salaires et appointements (accounts 661–663)**
-Write net solde (MvtDebit − MvtCredit from Balance Générale, filtered by account) into **column R**.
-Accounts: 661110, 661120, 661130, 661200, 661210, 661220, 661300, 661380, 661410, 661800, 663101, 663102, 663410.
-
-**Group B — CNPS (accounts 664110, 664120, 664130)**
-- 664120 (CNPS Pension AV) → **column S**
-- 664110 (CNPS AF) → **column W**
-- 664130 (CNPS AT) → **column X**
-
-**Group C — CF/P et FNE (accounts 664380, FNE_NA)**
-- 664380 (Prov. CF/P) → **column T**
-- FNE_NA (FNE non comptabilisé) → **column U = 0** ← audit finding!
-
-**Group D — Informations (accounts 668420, 668430, 668700)**
-- Written for information only; value = 0 or GL amount.
-- **Excluded from TOTAL COMPTABILITE** — shown in grey.
-
-**TOTAL COMPTABILITE**: `=GroupA_subtotal + GroupB_subtotal + GroupC_subtotal` (D excluded).
+| Col | Letter | Header | PAIE source | COMPTA source |
+|-----|--------|--------|-------------|---------------|
+| 14 | N | Salaire Base | **ALWAYS BLANK** | **ALWAYS BLANK** |
+| 15 | O | Ancienneté | **ALWAYS BLANK** | **ALWAYS BLANK** |
+| 16 | P | H. Sup | **ALWAYS BLANK** | **ALWAYS BLANK** |
+| 17 | Q | Autre Gain | **ALWAYS BLANK** | **ALWAYS BLANK** |
+| 18 | R | SAL BRUT | LivrePaie BRUT | BG — 661x+663x net solde |
+| 19 | S | CNPS/P | ChargesPatronales 4500 | GL — compte 664120 |
+| 20 | T | CF/P | ChargesPatronales 4100 | GL — compte 664380 |
+| 21 | U | FNE | ChargesPatronales 4400 | 0 (non comptabilisé GL) |
+| 22 | V | CF/P+FNE | formula | formula |
+| 23 | W | AF | ChargesPatronales 4800 | GL — compte 664110 |
+| 24 | X | AT | ChargesPatronales 4900 | GL — compte 664130 |
+| 25 | Y | TOTAL | formula | formula |
 
 ---
 
-### ECART Row (Section III)
+### Source Rules by Section (CRITICAL)
 
-For each column R through X and Y:
-```excel
-=TOTAL_COMPTA_cell − TOTAL_PAIE_cell
+**Section A — Rémunérations directes (661x + 663x):**
+→ Source = **Balance Générale (BG xlsx)**, col4=MvtDebit, col5=MvtCredit
+→ Solde Net = col4 − col5
+→ Written to column **R**
+→ Reason: BG is exhaustive; GL may be missing entries for some accounts
+
+**Section B — Cotisations CNPS (664110, 664120, 664130):**
+→ Source = **Grand Livre (GL xls)**, ALL journals (no journal filter)
+→ 664120 → col S (CNPS/P), 664110 → col W (AF), 664130 → col X (AT)
+
+**Section C — CF/P et FNE:**
+→ Source = **Grand Livre (GL xls)**, ALL journals
+→ 664380 → col T (CF/P)
+→ FNE → col U = **0** (structural: FNE is a salary deduction, not in GL 66x)
+
+**Section D — Autres charges sociales (668x) — INFORMATIVE ONLY:**
+→ Source = **Grand Livre (GL xls)**, ALL journals
+→ Written for information only
+→ **NOT included in TOTAL COMPTABILITE**
+
+---
+
+### Mandatory Excel Formulas (NOT hardcoded values)
+
+Every formula cell must be an actual Excel formula string — not a Python-computed number:
+
+**Employee rows (row r, PAIE section):**
+```
+col V : =T{r}+U{r}
+col Y : =R{r}+S{r}+V{r}+W{r}+X{r}
+```
+Note: Y uses V (not T+U separately) — so V must be written before Y on the same row.
+Cols R, S, T, U, W, X: write numeric values from payroll pivot CSVs (acceptable).
+
+**TOTAL PAIE row:**
+```
+col R : =SUM(R{paie_start}:R{paie_end})
+col S : =SUM(S{paie_start}:S{paie_end})
+... (same for T, U, V, W, X)
+col Y : =SUM(Y{paie_start}:Y{paie_end})
 ```
 
-Style: `843C0C` dark orange fill, white bold font, medium borders.
+**Subtotal A row (after Group A accounts):**
+```
+col R : =SUM(R{groupA_start}:R{groupA_end})
+col Y : =SUM(Y{groupA_start}:Y{groupA_end})   ← if applicable
+```
 
-An ecart of 0 = perfect reconciliation. Non-zero ecart = audit finding to be explained.
+**TOTAL COMPTABILITE row:**
+```
+col R : =R{subtot_A}+R{subtot_B}+R{subtot_C}
+col S : =S{subtot_A}+S{subtot_B}+S{subtot_C}
+... (same for T, U, V, W, X, Y)
+```
+(Section D excluded from this formula.)
+
+**ECART row:**
+```
+col R : =R{total_compta}-R{total_paie}
+col S : =S{total_compta}-S{total_paie}
+... (same for T, U, V, W, X, Y)
+```
 
 ---
 
-### Styling Standards
+### Column Blanking Rule (UNCHANGED)
 
-- Data rows: Arial 10pt, thin borders (`D9D9D9`), right-aligned numeric cells.
-- Total rows: Arial 10pt bold, `1F4E79` blue, medium borders (`1F4E79`), `D6E4F0` or `C6EFCE` fill.
-- ECART row: `843C0C` fill, white bold font.
-- Number format for all numeric cells: `#,##0;(#,##0);"-"`
+Columns N, O, P, Q (14–17) MUST be None/blank on EVERY row — PAIE and COMPTA sections.
+Never write values or formulas to these columns.
+
+---
+
+### Session State After Build
+
+After completing Feuil2, save to `.audit-session.json`:
+```json
+{
+  "feuil2_build": {
+    "row_total_paie": 178,
+    "row_total_compta": 214,
+    "row_ecart": 217,
+    "total_paie": 666286638,
+    "total_compta": 682630194,
+    "ecart": 16343556,
+    "source_section_A": "BG",
+    "source_sections_BCD": "GL"
+  }
+}
+```
+
+---
+
+### Auto-trigger Gap Analysis (MANDATORY)
+
+After Feuil2 is complete and saved:
+
+1. Store `row_total_paie`, `row_total_compta`, `row_ecart` in session.
+2. **Automatically call the `summarise` skill** (full gap-analysis):
+   - In **interactive mode**: display ECART values per column, ask user to validate before writing Feuil1.
+   - In **unattended mode**: run summarise automatically, report completion in final summary.
+3. The reconciliation-builder skill MUST call `summarise` at the end — partial Feuil1 updates are not permitted.
 
 ---
 
 ### Unmerge Before Writing
 
-Before writing to Feuil2, always unmerge any merged cells in the region being written:
+Before writing to any row ≥ COMPTA_START, unmerge all merged cells in that region:
 ```python
 to_unmerge = [mr for mr in list(ws.merged_cells.ranges) if mr.min_row >= start_row]
 for mr in to_unmerge:
@@ -111,8 +153,9 @@ for mr in to_unmerge:
 
 ---
 
-### build_reconciliation.py Entry Point
+### Regression Reference (CIFM 2025)
 
-The script reads `.audit-session.json` for file paths and `steps_completed` to resume if needed.
-It accepts `--section paie|compta|all` to run partial rebuilds.
-After writing, it calls `eval_totals.py` and `eval_ecart.py` for immediate verification.
+After a successful build, verify these expected totals:
+- TOTAL PAIE   = 666 286 638 FCFA (174 employees)
+- TOTAL COMPTA = 682 630 194 FCFA (13 accounts 661x+663x + CNPS + CF/P)
+- ECART        =  16 343 556 FCFA

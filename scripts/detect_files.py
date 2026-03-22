@@ -1,8 +1,9 @@
 """
 detect_files.py — Scan a directory for required audit source files.
 Outputs a JSON summary to stdout. Writes/updates .audit-session.json.
+Also stores accounting_plan (SYSCOHADA or PCG) if passed via --plan.
 
-Usage: python detect_files.py [--dir /path/to/audit/folder]
+Usage: python detect_files.py [--dir /path/to/audit/folder] [--plan SYSCOHADA|PCG]
 """
 import argparse, glob, json, os, sys
 
@@ -60,7 +61,9 @@ FILE_SPECS = {
 
 def main():
     parser = argparse.ArgumentParser(description="Detect audit source files")
-    parser.add_argument("--dir", default=".", help="Directory to scan")
+    parser.add_argument("--dir",  default=".", help="Directory to scan")
+    parser.add_argument("--plan", default=None, choices=["SYSCOHADA", "PCG"],
+                        help="Accounting plan: SYSCOHADA (66x) or PCG (64x)")
     parser.add_argument("--json-only", action="store_true", help="Output JSON only")
     args = parser.parse_args()
 
@@ -116,6 +119,12 @@ def main():
     for key, info in results.items():
         if info["path"]:
             session["files"][key] = info["path"]
+
+    # Store accounting plan if provided
+    if args.plan:
+        session["accounting_plan"] = args.plan
+        account_range = "66x" if args.plan == "SYSCOHADA" else "64x"
+        print(f"Accounting plan: {args.plan} (charges de personnel = comptes {account_range})")
 
     with open(session_path, "w", encoding="utf-8") as f:
         json.dump(session, f, indent=2, ensure_ascii=False)

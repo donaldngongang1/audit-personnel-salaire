@@ -33,8 +33,8 @@ BLANK_COLS  = {14, 15, 16, 17}   # N, O, P, Q
 Y_COL_IDX   = 25
 V_COL_IDX   = 22
 
-# Regex for Y formula: should contain R, S, T, U, W, X (not N, O, P, Q)
-Y_PATTERN  = re.compile(r"=R\d+\+S\d+\+T\d+\+U\d+\+W\d+\+X\d+", re.IGNORECASE)
+# Y formula: =R{r}+S{r}+V{r}+W{r}+X{r}  (uses V, not T+U separately — Rule 5)
+Y_PATTERN  = re.compile(r"=R\d+\+S\d+\+V\d+\+W\d+\+X\d+", re.IGNORECASE)
 V_PATTERN  = re.compile(r"=T\d+\+U\d+", re.IGNORECASE)
 BAD_REFS   = re.compile(r"[=+\-\*\/]N\d+|[=+\-\*\/]O\d+|[=+\-\*\/]P\d+|[=+\-\*\/]Q\d+")
 
@@ -50,10 +50,10 @@ for r in range(data_start, tot_paie_row):
         if val not in (None, 0, ""):
             blank_violations.append(f"Row {r} Col {col}: expected blank, got '{val}'")
 
-    # Check Y formula
+    # Check Y formula: must be =R+S+V+W+X (Rule 5: V used, not T+U separately)
     y_val = str(ws.cell(r, Y_COL_IDX).value or "")
     if not Y_PATTERN.search(y_val):
-        y_violations.append(f"Row {r} Y: '{y_val}'")
+        y_violations.append(f"Row {r} Y: '{y_val}' (expected =R+S+V+W+X)")
 
     # Check V formula
     v_val = str(ws.cell(r, V_COL_IDX).value or "")
@@ -79,7 +79,7 @@ if y_violations:
     for v in y_violations[:10]:
         print(f"   • {v}")
 else:
-    print(f"✅ Y column: all formulas = R+S+T+U+W+X")
+    print(f"✅ Y column: all formulas = R+S+V+W+X (uses V=CF/P+FNE)")
 
 if v_violations:
     print(f"\n❌ V formula issues: {len(v_violations)} violation(s)")

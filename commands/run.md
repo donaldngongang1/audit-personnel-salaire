@@ -9,7 +9,7 @@ allowed-tools: Bash, Read, Write, Edit, AskUserQuestion, TodoWrite
 
 Execute the complete payroll/personnel charges audit workflow from source files to final workpaper.
 
-### Step 1 — Language & Mode Selection
+### Step 1 — Language, Mode & Accounting Plan Selection
 
 If `.audit-session.json` does not exist in the working directory, use AskUserQuestion with:
 
@@ -23,7 +23,13 @@ If `.audit-session.json` does not exist in the working directory, use AskUserQue
 - Option B: "Non supervisé / Unattended — poser les questions au départ, puis exécuter automatiquement"
   - Description: "Ask all upfront questions, then run all steps automatically to completion"
 
-Store answers in `.audit-session.json`.
+**Q3 — Accounting plan / Référentiel comptable:**
+- Option A: "SYSCOHADA — Cameroun / zone OHADA (comptes **66x** = charges du personnel) (Recommandé)"
+  - Description: "661x=Rémunérations, 663x=Avantages, 664x=Cotisations CNPS+CF/P, 668x=Autres"
+- Option B: "PCG / France (comptes **64x** = charges du personnel)"
+  - Description: "641x=Rémunérations, 642x=Congés, 645x=Charges sociales, 647x=Autres"
+
+Store all answers in `.audit-session.json` under keys: `language`, `run_mode`, `accounting_plan`.
 
 ### Step 2 — Source File Detection
 
