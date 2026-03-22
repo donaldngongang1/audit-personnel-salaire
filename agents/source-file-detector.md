@@ -1,4 +1,5 @@
 ---
+name: source-file-detector
 description: >
   Autonomous agent for detecting and confirming audit source files. Triggers when the user starts
   a new audit session, mentions needing to find payroll files, says "where are my files", "scan

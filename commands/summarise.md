@@ -60,4 +60,16 @@ Run `build_feuil1_summary.py --write` to write values to Feuil1.
 ```
 
 Ask: "Souhaitez-vous ouvrir le fichier? / Do you want to open the file?"
-If yes: `python -c "import subprocess,json; d=json.load(open('.audit-session.json')); subprocess.Popen(['start',d['files']['feuille_travail']], shell=True)"`
+If yes, open with the platform's default application:
+```python
+import json, os, sys, subprocess
+with open('.audit-session.json') as f:
+    session = json.load(f)
+path = session['files']['feuille_travail']
+if sys.platform == 'win32':
+    os.startfile(path)
+elif sys.platform == 'darwin':
+    subprocess.Popen(['open', path])
+else:
+    subprocess.Popen(['xdg-open', path])
+```

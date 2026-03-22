@@ -1,4 +1,5 @@
 ---
+name: data-extractor
 description: >
   Autonomous agent for extracting payroll and accounting data into the FT-P-2 workbook Extract sheets.
   Triggers when the user says "extract the data", "parse the files", "créer les extraits",

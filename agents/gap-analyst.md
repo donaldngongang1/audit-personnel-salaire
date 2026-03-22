@@ -1,4 +1,5 @@
 ---
+name: gap-analyst
 description: >
   Autonomous agent for analysing ecarts (gaps) and explaining differences between payroll and
   accounting totals. Triggers when the user asks to "explain the gap", "why is there a difference",

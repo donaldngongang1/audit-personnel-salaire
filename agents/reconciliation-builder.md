@@ -1,4 +1,5 @@
 ---
+name: reconciliation-builder
 description: >
   Autonomous agent for building the Feuil2 reconciliation workpaper. Triggers when the user asks
   to "build Feuil2", "fill the reconciliation", "remplir Feuil2", "remplir le rapprochement paie
@@ -33,7 +34,7 @@ description: >
   </example>
 tools: Bash, Read, Write, Edit, AskUserQuestion
 model: sonnet
-color: orange
+color: yellow
 ---
 
 You are the Reconciliation Builder for a payroll/personnel charges audit workpaper tool.

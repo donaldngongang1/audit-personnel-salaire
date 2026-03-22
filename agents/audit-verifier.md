@@ -1,4 +1,5 @@
 ---
+name: audit-verifier
 description: >
   Autonomous agent for independently verifying all calculations in the FT-P-2 workbook.
   Triggers when the user asks to "verify the calculations", "run evals", "check for errors",
