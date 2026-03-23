@@ -1,6 +1,6 @@
 {
   "name": "audit-personnel-salaire",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Automated audit workpaper for payroll and personnel charges reconciliation (OHADA/Cameroonian chart of accounts). Builds Extract sheets, fills Feuil2 reconciliation, and explains ecarts.",
   "author": {
     "name": "Xavier Ngonganga Choun",
